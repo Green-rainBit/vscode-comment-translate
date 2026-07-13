@@ -139,6 +139,11 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.translateSelection",
+                "title": "%commentTranslate.command.translateSelection%",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.translateTerminalForCopilotChat",
                 "title": "%commentTranslate.command.translateForCopilotChat%",
                 "category": "Comment Translate"
@@ -239,8 +244,12 @@
             ],
             "editor/context": [
                 {
-                    "submenu": "commentTranslate",
+                    "command": "commentTranslate.translateSelection",
                     "group": "1_translate@0"
+                },
+                {
+                    "submenu": "commentTranslate",
+                    "group": "1_translate@1"
                 }
             ],
             "terminal/context": [

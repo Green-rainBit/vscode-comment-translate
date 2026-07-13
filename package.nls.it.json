@@ -10,6 +10,7 @@
     "commentTranslate.command.changeTargetLanguage": "Modificare la lingua di destinazione di traduzione",
     "commentTranslate.command.changeTranslateSource": "Modificare l'origine della traduzione",
     "commentTranslate.command.replaceSelections": "Tradurre e sostituire le selezioni",
+    "commentTranslate.command.translateSelection": "Traduci selezione",
     "commentTranslate.command.toggleBrowseMode": "Attiva/disattiva modalità di navigazione dei commenti",
     "commentTranslate.command.toggleDocumentBrowseMode": "Attiva/disattiva modalità di navigazione dei commenti per il documento corrente",
     "commentTranslate.command.translateForCopilotChat": "Traduci il testo selezionato e visualizzalo in GitHub Copilot Chat",

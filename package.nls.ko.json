@@ -10,6 +10,7 @@
     "commentTranslate.command.changeTargetLanguage": "번역 타겟 언어 변경",
     "commentTranslate.command.changeTranslateSource": "번역기 변경하기",
     "commentTranslate.command.replaceSelections": "선택 영역 번역 후, 대체하기",
+    "commentTranslate.command.translateSelection": "선택 텍스트 번역",
     "commentTranslate.command.toggleBrowseMode": "주석 탐색 모드 전환",
     "commentTranslate.command.toggleDocumentBrowseMode": "현재 문서의 주석 탐색 모드 전환",
     "commentTranslate.command.translateForCopilotChat": "선택한 텍스트를 번역하여 GitHub Copilot Chat에 표시",

@@ -10,6 +10,7 @@
     "commentTranslate.command.changeTargetLanguage": "Изменить язык перевода",
     "commentTranslate.command.changeTranslateSource": "Изменить источник перевода",
     "commentTranslate.command.replaceSelections": "Перевод и замена выделенных фрагментов",
+    "commentTranslate.command.translateSelection": "Перевести выделенный текст",
     "commentTranslate.command.toggleBrowseMode": "Переключить режим просмотра комментариев",
     "commentTranslate.command.toggleDocumentBrowseMode": "Переключить режим просмотра комментариев для текущего документа",
     "commentTranslate.command.translateForCopilotChat": "Перевести выделенный текст и отобразить в GitHub Copilot Chat",

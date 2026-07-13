@@ -10,6 +10,7 @@
     "commentTranslate.command.changeTargetLanguage": "更改翻译目标语言",
     "commentTranslate.command.changeTranslateSource": "更改翻译源",
     "commentTranslate.command.replaceSelections": "翻译并替换选区",
+    "commentTranslate.command.translateSelection": "翻译选中文本",
     "commentTranslate.command.toggleBrowseMode": "切换注释浏览模式",
     "commentTranslate.command.toggleDocumentBrowseMode": "切换当前文档的注释浏览模式",
     "commentTranslate.command.openDocumentBrowseMode": "打开注释浏览模式",
