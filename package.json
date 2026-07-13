@@ -3,7 +3,7 @@
     "displayName": "%commentTranslate.displayName%",
     "description": "%commentTranslate.description%",
     "version": "3.1.0",
-    "publisher": "intellsmi",
+    "publisher": "local",
     "author": {
         "name": "Zheng MaoWei",
         "email": "intellsmi@gmail.com"
@@ -245,7 +245,7 @@
             "editor/context": [
                 {
                     "command": "commentTranslate.translateSelection",
-                    "group": "1_translate@0"
+                    "group": "navigation@0"
                 },
                 {
                     "submenu": "commentTranslate",
