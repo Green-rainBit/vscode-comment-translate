@@ -21,6 +21,8 @@ import { cleanupVariableCompletionByUri } from './command/replaceSelections';
 import { conciseDecorationManager } from './languageFeature/concise';
 import { registerMarkdownPreview } from './languageFeature/markdownPreview';
 import { registerTranslateSelectionCodeAction } from './command/translateSelectionCodeAction';
+import { registerTranslatePanel } from './languageFeature/translatePanel';
+import { registerTranslationLens } from './languageFeature/translationLens';
 
 export let outputChannel = window.createOutputChannel('Comment Translate');
 
@@ -45,6 +47,8 @@ export async function activate(context: ExtensionContext) {
     conciseDecorationManager.register(context, canLanguages);
     registerMarkdownPreview(context);
     registerTranslateSelectionCodeAction(context);
+    registerTranslatePanel(context);
+    registerTranslationLens(context);
 
     context.subscriptions.push(...commentDecorationManager.showBrowseCommentTranslate(canLanguages));
     context.subscriptions.push(workspace.onDidCloseTextDocument((doc) => {

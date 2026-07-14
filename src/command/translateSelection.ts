@@ -2,6 +2,7 @@ import { window, Selection, DecorationOptions, Hover, MarkdownString, commands }
 import { ICommentBlock } from "../interface";
 import { compileBlock } from "../syntax/compile";
 import { createHoverMarkdownString } from "../languageFeature/hoverUtil";
+import { showTranslationBelow } from "../languageFeature/translationLens";
 import { getMarkdownTextValue } from "../syntax/marked";
 import { outputChannel } from "../extension";
 
@@ -59,27 +60,28 @@ export async function translateSelectionCommand() {
 
         let showText = humanizeText ? `${humanizeText} → ${translatedText}` : translatedText;
 
+        // Show the translation on its OWN line directly below the selection via a
+        // CodeLens (reserves vertical space, never overlaps code or selection).
+        showTranslationBelow(
+            editor.document.uri.toString(),
+            selection.end.line,
+            showText,
+            translatedText
+        );
+
+        // Hover-message-only decoration: hovering the selection shows action buttons.
+        // No visible inline text (the CodeLens handles the visible translation).
         let contentDecoration: DecorationOptions = {
             range: selection,
-            renderOptions: {
-                after: {
-                    textDecoration: `none; font-style: italic;`,
-                    contentText: `  ↪ ${showText}`,
-                    color: 'var(--vscode-editorCodeLens-foreground)',
-                    margin: '0 0 0 0.5em',
-                },
-            },
             hoverMessage: [res.header, res.md],
         };
 
         let translatedDecoration = window.createTextEditorDecorationType({});
         editor.setDecorations(translatedDecoration, [contentDecoration]);
 
-        // Best-effort: trigger native hover
-        editor.selection = new Selection(selection.end, selection.start);
-        setTimeout(async () => {
-            try { await commands.executeCommand('editor.action.showHover'); } catch { }
-        }, 100);
+        // Note: we intentionally do NOT auto-trigger the native hover here.
+        // The translation is shown via the CodeLens below; the hover buttons are
+        // available on-demand when the user moves the mouse over the selection.
 
         setTimeout(() => { translatedDecoration.dispose(); }, 15000);
 

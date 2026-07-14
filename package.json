@@ -144,6 +144,12 @@
                 "category": "Comment Translate"
             },
             {
+                "command": "commentTranslate.openTranslatePanel",
+                "title": "%commentTranslate.command.openTranslatePanel%",
+                "icon": "$(globe)",
+                "category": "Comment Translate"
+            },
+            {
                 "command": "commentTranslate.translateTerminalForCopilotChat",
                 "title": "%commentTranslate.command.translateForCopilotChat%",
                 "category": "Comment Translate"
@@ -202,6 +208,25 @@
                 "label": "%commentTranslate.displayName%"
             }
         ],
+        "viewsContainers": {
+            "panel": [
+                {
+                    "id": "commentTranslate.panelContainer",
+                    "title": "翻译",
+                    "icon": "$(globe)"
+                }
+            ]
+        },
+        "views": {
+            "commentTranslate.panelContainer": [
+                {
+                    "type": "webview",
+                    "id": "commentTranslate.translatePanelView",
+                    "name": "翻译",
+                    "visibility": "visible"
+                }
+            ]
+        },
         "menus": {
             "commandPalette": [
                 {
