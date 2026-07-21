@@ -2,7 +2,6 @@ import { window, Selection, DecorationOptions, Hover, MarkdownString, commands }
 import { ICommentBlock } from "../interface";
 import { compileBlock } from "../syntax/compile";
 import { createHoverMarkdownString } from "../languageFeature/hoverUtil";
-import { showTranslationBelow } from "../languageFeature/translationLens";
 import { getMarkdownTextValue } from "../syntax/marked";
 import { outputChannel } from "../extension";
 
@@ -49,6 +48,11 @@ export async function translateSelectionCommand() {
             return;
         }
 
+        let showText = humanizeText ? `${humanizeText} → ${translatedText}` : translatedText;
+
+        // One decoration carries BOTH:
+        //  - inline "immersive" translation shown right after the selection (always visible)
+        //  - hover box with the translation + action buttons (on mouse hover)
         let res = createHoverMarkdownString(
             translatedText,
             humanizeText,
@@ -57,33 +61,21 @@ export async function translateSelectionCommand() {
             editor.document,
             translateLink
         );
-
-        let showText = humanizeText ? `${humanizeText} → ${translatedText}` : translatedText;
-
-        // Show the translation on its OWN line directly below the selection via a
-        // CodeLens (reserves vertical space, never overlaps code or selection).
-        showTranslationBelow(
-            editor.document.uri.toString(),
-            selection.end.line,
-            showText,
-            translatedText
-        );
-
-        // Hover-message-only decoration: hovering the selection shows action buttons.
-        // No visible inline text (the CodeLens handles the visible translation).
         let contentDecoration: DecorationOptions = {
             range: selection,
+            renderOptions: {
+                after: {
+                    textDecoration: `none; font-style: italic;`,
+                    contentText: `  ↪ ${showText}`,
+                    color: 'var(--vscode-editorCodeLens-foreground)',
+                    margin: '0 0 0 0.5em',
+                },
+            },
             hoverMessage: [res.header, res.md],
         };
-
-        let translatedDecoration = window.createTextEditorDecorationType({});
-        editor.setDecorations(translatedDecoration, [contentDecoration]);
-
-        // Note: we intentionally do NOT auto-trigger the native hover here.
-        // The translation is shown via the CodeLens below; the hover buttons are
-        // available on-demand when the user moves the mouse over the selection.
-
-        setTimeout(() => { translatedDecoration.dispose(); }, 15000);
+        let hoverDecoration = window.createTextEditorDecorationType({});
+        editor.setDecorations(hoverDecoration, [contentDecoration]);
+        setTimeout(() => { hoverDecoration.dispose(); }, 15000);
 
     } else {
         // Mode 2: No selection — translate hover content at cursor (e.g. function docs)

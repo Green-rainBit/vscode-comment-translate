@@ -1,43 +1,37 @@
-import { CodeLens, CodeLensProvider, commands, env, EventEmitter, ExtensionContext, languages, Range, TextDocument } from "vscode";
+import { CodeLens, CodeLensProvider, DecorationOptions, env, EventEmitter, ExtensionContext, languages, Range, TextEditor, TextEditorDecorationType, commands, window } from "vscode";
 
-interface LensEntry {
+interface ActiveTranslation {
+    uri: string;
     line: number;
-    display: string;
-    copy: string;
+    decoration: TextEditorDecorationType;
+    timer: ReturnType<typeof setTimeout>;
 }
 
-// Active translation lenses per document URI
-const activeLenses = new Map<string, LensEntry[]>();
-const timers = new Map<string, ReturnType<typeof setTimeout>>();
+// key = `${uri}:${line}` -> active translation shown via placeholder + floated decoration
+const active = new Map<string, ActiveTranslation>();
 let changeEmitter: EventEmitter<void>;
 
 export function registerTranslationLens(context: ExtensionContext) {
     changeEmitter = new EventEmitter<void>();
 
-    // Click a translation lens to copy it
     context.subscriptions.push(
         commands.registerCommand('commentTranslate._copyLensText', async (text: string) => {
-            if (text) {
-                await env.clipboard.writeText(text);
-            }
+            if (text) await env.clipboard.writeText(text);
         })
     );
 
     const provider: CodeLensProvider = {
         onDidChangeCodeLenses: changeEmitter.event,
-        provideCodeLenses(document: TextDocument): CodeLens[] {
-            const entries = activeLenses.get(document.uri.toString());
-            if (!entries || entries.length === 0) return [];
+        provideCodeLenses(document): CodeLens[] {
             const lenses: CodeLens[] = [];
-            for (const e of entries) {
-                // Lens renders ABOVE range.start.line, so attach to the line after
-                // the selection to make it appear directly below the selected text.
-                if (e.line >= document.lineCount) continue;
-                const range = new Range(e.line, 0, e.line, 0);
-                lenses.push(new CodeLens(range, {
-                    title: e.display,
-                    command: 'commentTranslate._copyLensText',
-                    arguments: [e.copy],
+            for (const a of active.values()) {
+                if (a.uri !== document.uri.toString()) continue;
+                if (a.line >= document.lineCount) continue;
+                // Placeholder lens reserves vertical space (blank line) so the
+                // floated styled decoration below renders without overlapping code.
+                lenses.push(new CodeLens(new Range(a.line, 0, a.line, 0), {
+                    title: ' ',
+                    command: '',
                 }));
             }
             return lenses;
@@ -49,54 +43,52 @@ export function registerTranslationLens(context: ExtensionContext) {
 }
 
 /**
- * Show a translation as a CodeLens on its own line directly below the selection.
- * @param uri Document URI string
- * @param selectionEndLine The last line number of the selection
- * @param display Text shown in the lens
- * @param copyText Text copied when the lens is clicked
+ * Show a translation on its own line directly below the selection.
+ * Uses a placeholder CodeLens to reserve a blank line, then floats a styled
+ * (italic, grey, full-size) decoration into that space — so the text is larger
+ * than a normal CodeLens and never overlaps code or the selection highlight.
  */
 export function showTranslationBelow(
-    uri: string,
+    editor: TextEditor,
     selectionEndLine: number,
     display: string,
-    copyText: string,
     timeoutMs: number = 15000
 ) {
     if (!changeEmitter) return;
-    const lensLine = selectionEndLine + 1;
+    const uri = editor.document.uri.toString();
+    const line = Math.min(Math.max(0, editor.document.lineCount - 1), selectionEndLine + 1);
+    const key = `${uri}:${line}`;
 
-    let entries = activeLenses.get(uri) || [];
-    entries = entries.filter(e => e.line !== lensLine);
-    entries.push({ line: lensLine, display, copy: copyText });
-    activeLenses.set(uri, entries);
-    changeEmitter.fire();
-
-    const key = `${uri}:${lensLine}`;
-    const old = timers.get(key);
-    if (old) clearTimeout(old);
-    timers.set(key, setTimeout(() => {
-        let arr = activeLenses.get(uri);
-        if (arr) {
-            arr = arr.filter(e => e.line !== lensLine);
-            if (arr.length === 0) activeLenses.delete(uri);
-            else activeLenses.set(uri, arr);
-            changeEmitter.fire();
-        }
-        timers.delete(key);
-    }, timeoutMs));
-}
-
-export function clearTranslationBelow(uri: string, selectionEndLine: number) {
-    if (!changeEmitter) return;
-    const lensLine = selectionEndLine + 1;
-    let arr = activeLenses.get(uri);
-    if (arr) {
-        arr = arr.filter(e => e.line !== lensLine);
-        if (arr.length === 0) activeLenses.delete(uri);
-        else activeLenses.set(uri, arr);
-        changeEmitter.fire();
+    // Clear ALL existing translations so only one result box is shown at a time.
+    // (Prevents duplicates when translate is triggered repeatedly via lightbulb /
+    // context menu on the same or different selections.)
+    for (const [k, entry] of active) {
+        clearTimeout(entry.timer);
+        entry.decoration.dispose();
+        active.delete(k);
     }
-    const key = `${uri}:${lensLine}`;
-    const t = timers.get(key);
-    if (t) { clearTimeout(t); timers.delete(key); }
+
+    const decoration = window.createTextEditorDecorationType({});
+    const opts: DecorationOptions = {
+        range: new Range(line, 0, line, 0),
+        renderOptions: {
+            before: {
+                // Same style as immersive reading (browse mode): floated up into the
+                // reserved line, grey, full editor font size.
+                textDecoration: `none; font-size: 1em; display: inline-block; position: relative; width: 0; top: -1.3em;`,
+                contentText: display,
+                color: 'var(--vscode-editorCodeLens-foreground)',
+            },
+        },
+    };
+    editor.setDecorations(decoration, [opts]);
+
+    const timer = setTimeout(() => {
+        decoration.dispose();
+        active.delete(key);
+        changeEmitter.fire();
+    }, timeoutMs);
+
+    active.set(key, { uri, line, decoration, timer });
+    changeEmitter.fire();
 }

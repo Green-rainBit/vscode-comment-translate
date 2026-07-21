@@ -865,7 +865,7 @@
                     },
                     "commentTranslate.maxTranslationLength": {
                         "type": "number",
-                        "default": "10000",
+                        "default": 10000,
                         "order": 28,
                         "description": "%commentTranslate.configuration.maxTranslationLength%"
                     },
