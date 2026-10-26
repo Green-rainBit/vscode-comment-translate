@@ -1,9 +1,13 @@
-import { window, Selection, DecorationOptions, Hover, MarkdownString, commands } from "vscode";
+import { window, Selection, DecorationOptions, Hover, MarkdownString, TextEditorDecorationType, commands } from "vscode";
 import { ICommentBlock } from "../interface";
 import { compileBlock } from "../syntax/compile";
 import { createHoverMarkdownString } from "../languageFeature/hoverUtil";
 import { getMarkdownTextValue } from "../syntax/marked";
 import { outputChannel } from "../extension";
+
+// Holds the currently-visible selection-translation decoration so we can dispose
+// it before showing a new one — prevents stacking when translate is triggered repeatedly.
+let currentDecoration: TextEditorDecorationType | undefined;
 
 export async function translateSelectionCommand() {
     let editor = window.activeTextEditor;
@@ -61,6 +65,13 @@ export async function translateSelectionCommand() {
             editor.document,
             translateLink
         );
+        // Dispose any previous translation decoration so repeated translates
+        // don't stack multiple "↪ translation" markers.
+        if (currentDecoration) {
+            currentDecoration.dispose();
+            currentDecoration = undefined;
+        }
+
         let contentDecoration: DecorationOptions = {
             range: selection,
             renderOptions: {
@@ -74,8 +85,14 @@ export async function translateSelectionCommand() {
             hoverMessage: [res.header, res.md],
         };
         let hoverDecoration = window.createTextEditorDecorationType({});
+        currentDecoration = hoverDecoration;
         editor.setDecorations(hoverDecoration, [contentDecoration]);
-        setTimeout(() => { hoverDecoration.dispose(); }, 15000);
+        setTimeout(() => {
+            hoverDecoration.dispose();
+            if (currentDecoration === hoverDecoration) {
+                currentDecoration = undefined;
+            }
+        }, 15000);
 
     } else {
         // Mode 2: No selection — translate hover content at cursor (e.g. function docs)
