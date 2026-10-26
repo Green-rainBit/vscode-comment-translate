@@ -5,3 +5,13 @@ doc
 dist/**/*.js.map
 coverage
 test
+.github
+.claude
+.gitignore
+.editorconfig
+.eslintrc.json
+jest.config.js
+tsconfig.json
+tsconfig.base.json
+pnpm-lock.yaml
+package-lock.json
